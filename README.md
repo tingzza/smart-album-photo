@@ -4,4 +4,5 @@ VLM:https://www.aliyun.com/product/bailian
 
 空间优化参考:https://github.com/idealo/imagededup
 
-风格迁移:https://github.com/open-mmlab/StyleShot,需要去主页配置环境以及下载模型。
+风格迁移:https://github.com/open-mmlab/StyleShot
+需要去主页配置环境以及下载模型。
