@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f5f5;
+            --accent-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--secondary-color);
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            padding: 1rem;
+        }
+
+        .nav-link {
+            color: white !important;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .content-section {
+            display: none;
+            padding: 20px;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .album-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .album-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .album-cover {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .album-info {
+            padding: 10px;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 200px;
+            position: relative;
+        }
+
+        #photoPrompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            padding: 20px;
+        }
+
+        .photo-item {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: none;
+        }
+
+        .photo-item:hover .photo-actions {
+            display: block;
+        }
+
+        .search-bar {
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #357abd;
+        }
+
+        .photo-checkbox {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            z-index: 2;
+        }
+        
+        .photo-checkbox input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .batch-actions {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .album-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .album-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .album-cover {
+            height: 200px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .album-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .no-cover {
+            color: #dee2e6;
+            font-size: 3rem;
+        }
+
+        .album-info {
+            padding: 15px;
+        }
+
+        .album-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-body .photo-grid {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        #albumContent {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #albumContent h3 {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .category-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .category-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .faces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .face-card {
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .face-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .face-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 3px solid var(--primary-color);
+        }
+
+        .face-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .face-count {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .category-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .face-preview-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px auto;
+            border: 3px solid var(--primary-color);
+        }
+
+        .img-preview {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-content {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #fancy .feature-card {
+            font-size: 0.95rem;
+        }
+        #fancy .feature-card h3 {
+            font-size: 1.2rem;
+        }
+        #fancy .feature-card p {
+            font-size: 0.95rem;
+        }
+        #fancy .feature-card input[type="file"] {
+            font-size: 0.95rem;
+        }
+        #fancy .feature-card .mt-3 {
+            font-size: 0.95rem;
+        }
+
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .feature-hover-effect {
+            margin-top: 15px;
+            color: var(--primary-color);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover .feature-hover-effect {
+            opacity: 1;
+        }
+
+        .feature-page {
+            display: none;
+            padding: 20px;
+        }
+
+        .feature-page.active {
+            display: block;
+        }
+
+        .feature-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 增加卡片间距的样式 */
+        #fancy .row {
+            margin: -20px;  /* 抵消子元素的padding */
+        }
+
+        #fancy .col-md-6 {
+            padding: 20px;  /* 增加卡片之间的间距 */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="#">Smart Photo Album</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="categories">Categories</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="description">Image Description</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="optimization">Optimization</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-section="fancy">Fancy Features</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Section -->
+    <div id="home" class="content-section active">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>All Photos</h2>
+                <div>
+                    <input type="file" id="folderInput" webkitdirectory directory multiple style="display: none;">
+                    <button class="btn btn-primary me-2" onclick="document.getElementById('folderInput').click()">
+                        <i class="fas fa-folder-open"></i> Select Folder
+                    </button>
+                    <button class="btn btn-primary" onclick="showCreateAlbumModal()">
+                        <i class="fas fa-plus"></i> New Album
+                    </button>
+                </div>
+            </div>
+            <div class="batch-actions mb-3" style="display: none;">
+                <button class="btn btn-danger me-2" onclick="deleteSelectedPhotos()">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+                <button class="btn btn-primary" onclick="showMoveToAlbumModal()">
+                    <i class="fas fa-folder-open"></i> Move to Album
+                </button>
+            </div>
+            <div class="photo-grid" id="allPhotos">
+                <div id="photoPrompt" class="text-center text-muted" style="padding: 40px;">
+                  Click "Select Folder" to select your folder containing pictures
+                </div>
+            </div>
+
+            <div class="albums-section mt-5">
+                <h3>Albums</h3>
+                <div class="album-grid" id="albumGrid">
+                    <!-- Albums will be displayed here -->
+                </div>
+            </div>
+
+            <div id="albumContent" class="mt-4" style="display: none;">
+                <h3 id="currentAlbumName"></h3>
+                <div class="photo-grid" id="albumPhotos">
+                    <!-- Album photos will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Album Modal -->
+    <div class="modal fade" id="createAlbumModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Album</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="albumName" class="form-label">Album Name</label>
+                        <input type="text" class="form-control" id="albumName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createAlbum()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Move to Album Modal -->
+    <div class="modal fade" id="moveToAlbumModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Move to Album</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="targetAlbum" class="form-label">Select Album</label>
+                        <select class="form-select" id="targetAlbum">
+                            <!-- Album options will be added here -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="moveToAlbum()">Move</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Cover Modal -->
+    <div class="modal fade" id="setCoverModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Set Album Cover</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="photo-grid" id="coverSelectionGrid">
+                        <!-- Photos for cover selection will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Section -->
+    <div id="categories" class="content-section">
+        <div class="container">
+            <div class="search-bar">
+                <input type="text" class="form-control" placeholder="Search categories...">
+            </div>
+            <div class="categories-container">
+                <!-- Faces Category -->
+                <div class="category-section mb-4">
+                    <div class="category-header d-flex justify-content-between align-items-center">
+                        <h3>Faces</h3>
+                        <button class="btn btn-primary" onclick="showAddFaceModal()">
+                            <i class="fas fa-plus"></i> Add New Face
+                        </button>
+                    </div>
+                    <div class="faces-grid" id="facesGrid">
+                        <!-- Face categories will be added here -->
+                    </div>
+                </div>
+
+                <!-- Other Categories -->
+                <div class="category-section mb-4">
+                    <div class="category-header d-flex justify-content-between align-items-center">
+                        <h3>Other Categories</h3>
+                        <button class="btn btn-primary" onclick="showAddCategoryModal()">
+                            <i class="fas fa-plus"></i> Add Category
+                        </button>
+                    </div>
+                    <div class="categories-grid" id="categoriesGrid">
+                        <!-- Other categories will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Face Modal -->
+    <div class="modal fade" id="addFaceModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Face</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="faceName" class="form-label">Face Name</label>
+                        <input type="text" class="form-control" id="faceName" placeholder="Enter name for this face">
+                    </div>
+                    <div class="mb-3">
+                        <label for="faceImage" class="form-label">Face Image</label>
+                        <input type="file" class="form-control" id="faceImage" accept="image/*">
+                    </div>
+                    <div id="facePreview" class="text-center" style="display: none;">
+                        <img src="" alt="Face Preview" class="face-preview-img">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="addNewFace()">Add Face</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Category Name</label>
+                        <input type="text" class="form-control" id="categoryName" placeholder="Enter category name">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="addNewCategory()">Add Category</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Description Section -->
+    <div id="description" class="content-section">
+        <div class="container">
+            <div class="feature-card">
+                <h3>Image Description</h3>
+                <div class="mb-3">
+                    <label for="descriptionImage" class="form-label">Select Image</label>
+                    <input type="file" class="form-control" accept="image/*" id="descriptionImage">
+                </div>
+                <div class="mb-3">
+                    <label for="customPrompt" class="form-label">Custom Prompt (Optional)</label>
+                    <input type="text" class="form-control" id="customPrompt" 
+                           placeholder="Briefly describe the picture" 
+                           value="Briefly describe the picture">
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-primary" onclick="generateDescription()">
+                        <i class="fas fa-magic"></i> Generate
+                    </button>
+                </div>
+                <div id="imagePreview" class="text-center mb-3" style="display: none;">
+                    <img src="" alt="Selected Image" class="img-preview">
+                </div>
+                <div id="descriptionResult" class="mt-3">
+                    <div class="result-card" style="display: none;">
+                        <h4>Description Result:</h4>
+                        <div class="result-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optimization Section -->
+    <div id="optimization" class="content-section">
+        <div class="container">
+            <div class="feature-card">
+                <h3>Image Space Optimization</h3>
+                
+                <!-- Space Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Before Optimization</h5>
+                                <p class="card-text">
+                                    Total Photos: <span id="beforePhotoCount">0</span><br>
+                                    Total Space: <span id="beforeSpace">0 MB</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">After Optimization</h5>
+                                <p class="card-text">
+                                    Total Photos: <span id="afterPhotoCount">0</span><br>
+                                    Total Space: <span id="afterSpace">0 MB</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mb-4">
+                    <button class="btn btn-primary" onclick="findDuplicates()">
+                        <i class="fas fa-search"></i> Find Duplicates
+                    </button>
+                    <button class="btn btn-success ms-2" onclick="applyOptimization()" disabled id="applyOptimizationBtn">
+                        <i class="fas fa-check"></i> Apply Optimization
+                    </button>
+                </div>
+
+                <!-- Duplicate Groups -->
+                <div id="duplicateGroups" class="mt-4">
+                    <!-- Duplicate groups will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fancy Features Section -->
+    <div id="fancy" class="content-section">
+        <div class="container">
+            <h2 class="mb-4">Advanced AI Features</h2>
+            <div class="row">
+                <!-- Face Prediction -->
+                <div class="col-md-6">
+                    <div class="feature-card text-center" onclick="navigateToFeature('face-prediction')" style="cursor: pointer;">
+                        <span style="font-size:3rem;">👤</span>
+                        <h3>Face Prediction</h3>
+                        <p>Recognize appearance changes with age</p>
+                        <div class="feature-hover-effect">
+                            <i class="fas fa-arrow-right"></i> Click to explore
+                        </div>
+                    </div>
+                </div>
+                <!-- Style Transfer -->
+                <div class="col-md-6">
+                    <div class="feature-card text-center" onclick="navigateToFeature('style-transfer')" style="cursor: pointer;">
+                        <span style="font-size:3rem;">🎨</span>
+                        <h3>Style Transfer</h3>
+                        <p>Apply artistic styles to your photos like famous paintings</p>
+                        <div class="feature-hover-effect">
+                            <i class="fas fa-arrow-right"></i> Click to explore
+                        </div>
+                    </div>
+                </div>
+                <!-- Colorization -->
+                <div class="col-md-6">
+                    <div class="feature-card text-center" onclick="navigateToFeature('colorization')" style="cursor: pointer;">
+                        <span style="font-size:3rem;">🌈</span>
+                        <h3>Colorization</h3>
+                        <p>Automatically colorize black and white photos</p>
+                        <div class="feature-hover-effect">
+                            <i class="fas fa-arrow-right"></i> Click to explore
+                        </div>
+                    </div>
+                </div>
+                <!-- Super Resolution -->
+                <div class="col-md-6">
+                    <div class="feature-card text-center" onclick="navigateToFeature('super-resolution')" style="cursor: pointer;">
+                        <span style="font-size:3rem;">🔍</span>
+                        <h3>Super Resolution</h3>
+                        <p>Enhance low-resolution photos with AI upscaling</p>
+                        <div class="feature-hover-effect">
+                            <i class="fas fa-arrow-right"></i> Click to explore
+                        </div>
+                    </div>
+                </div>
+                <!-- Background Removal -->
+                <div class="col-md-6">
+                    <div class="feature-card text-center" onclick="navigateToFeature('background-removal')" style="cursor: pointer;">
+                        <span style="font-size:3rem;">✂️</span>
+                        <h3>Background Removal</h3>
+                        <p>Automatically remove or replace photo backgrounds</p>
+                        <div class="feature-hover-effect">
+                            <i class="fas fa-arrow-right"></i> Click to explore
+                        </div>
+                    </div>
+                </div>
+                <!-- Photo Restoration -->
+                <div class="col-md-6">
+                    <div class="feature-card text-center" onclick="navigateToFeature('photo-restoration')" style="cursor: pointer;">
+                        <span style="font-size:3rem;">🔄</span>
+                        <h3>Photo Restoration</h3>
+                        <p>Fix old or damaged photos by removing scratches and noise</p>
+                        <div class="feature-hover-effect">
+                            <i class="fas fa-arrow-right"></i> Click to explore
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Pages -->
+    <div id="feature-pages" class="content-section" style="display: none;">
+        <!-- Face Prediction Page -->
+        <div id="face-prediction-page" class="feature-page">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Face Prediction</h2>
+                    <button class="btn btn-outline-primary" onclick="backToFancy()">
+                        <i class="fas fa-arrow-left"></i> Back to Features
+                    </button>
+                </div>
+                <div class="feature-content">
+                    <!-- Add your face prediction specific content here -->
+                    <p>Face prediction feature coming soon...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Style Transfer Page -->
+        <div id="style-transfer-page" class="feature-page">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Style Transfer</h2>
+                    <button class="btn btn-outline-primary" onclick="backToFancy()">
+                        <i class="fas fa-arrow-left"></i> Back to Features
+                    </button>
+                </div>
+                <div class="feature-content">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Style Image</h5>
+                                    <div class="mb-3">
+                                        <label for="styleImage" class="form-label">Select Style Image</label>
+                                        <input type="file" class="form-control" id="styleImage" accept="image/*" onchange="previewStyleImage(event)">
+                                    </div>
+                                    <div id="stylePreview" class="text-center" style="display: none;">
+                                        <img src="" alt="Style Preview" class="img-preview">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Content Image</h5>
+                                    <div class="mb-3">
+                                        <label for="contentImage" class="form-label">Select Content Image</label>
+                                        <input type="file" class="form-control" id="contentImage" accept="image/*" onchange="previewContentImage(event)">
+                                    </div>
+                                    <div id="contentPreview" class="text-center" style="display: none;">
+                                        <img src="" alt="Content Preview" class="img-preview">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Style Transfer Result</h5>
+                                    <div class="mb-3">
+                                        <button class="btn btn-primary" onclick="runStyleTransfer()">
+                                            <i class="fas fa-magic"></i> Run Style Transfer
+                                        </button>
+                                    </div>
+                                    <div id="resultPreview" class="text-center" style="display: none;">
+                                        <img src="" alt="Result Preview" class="img-preview">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colorization Page -->
+        <div id="colorization-page" class="feature-page">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Colorization</h2>
+                    <button class="btn btn-outline-primary" onclick="backToFancy()">
+                        <i class="fas fa-arrow-left"></i> Back to Features
+                    </button>
+                </div>
+                <div class="feature-content">
+                    <!-- Add your colorization specific content here -->
+                    <p>Colorization feature coming soon...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Super Resolution Page -->
+        <div id="super-resolution-page" class="feature-page">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Super Resolution</h2>
+                    <button class="btn btn-outline-primary" onclick="backToFancy()">
+                        <i class="fas fa-arrow-left"></i> Back to Features
+                    </button>
+                </div>
+                <div class="feature-content">
+                    <!-- Add your super resolution specific content here -->
+                    <p>Super resolution feature coming soon...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Background Removal Page -->
+        <div id="background-removal-page" class="feature-page">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Background Removal</h2>
+                    <button class="btn btn-outline-primary" onclick="backToFancy()">
+                        <i class="fas fa-arrow-left"></i> Back to Features
+                    </button>
+                </div>
+                <div class="feature-content">
+                    <!-- Add your background removal specific content here -->
+                    <p>Background removal feature coming soon...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photo Restoration Page -->
+        <div id="photo-restoration-page" class="feature-page">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Photo Restoration</h2>
+                    <button class="btn btn-outline-primary" onclick="backToFancy()">
+                        <i class="fas fa-arrow-left"></i> Back to Features
+                    </button>
+                </div>
+                <div class="feature-content">
+                    <!-- Add your photo restoration specific content here -->
+                    <p>Photo restoration feature coming soon...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add these variables at the top of your script
+        let albums = [];
+        let currentAlbumId = null;
+        let faces = [];
+        let categories = [];
+        let allPhotoFiles = [];
+
+        // Navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = e.target.dataset.section;
+                // 首先隐藏所有内容区域
+                document.querySelectorAll('.content-section').forEach(s => {
+                    s.style.display = 'none';
+                });
+                // 显示选中的部分
+                document.getElementById(section).style.display = 'block';
+                // 移除所有导航链接的active类
+                document.querySelectorAll('.nav-link').forEach(l => {
+                    l.classList.remove('active');
+                });
+                // 给当前点击的导航链接添加active类
+                e.target.classList.add('active');
+            });
+        });
+
+        // Handle folder selection
+        document.getElementById('folderInput').addEventListener('change', (e) => {
+            const files = Array.from(e.target.files).filter(file => 
+                file.type.startsWith('image/')
+            );
+            
+            if (files.length > 0) {
+                displayPhotos(files);
+                document.querySelector('.batch-actions').style.display = 'block';
+            }
+        });
+
+        // Display photos in grid
+        function displayPhotos(files) {
+            allPhotoFiles = Array.from(files); // 记录所有照片
+            const photoGrid = document.getElementById('allPhotos');
+            // 移除提示文字
+            const promptDiv = document.getElementById('photoPrompt');
+            if (promptDiv) promptDiv.remove();
+            photoGrid.innerHTML = '';
+            files.forEach(file => {
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                photoItem.innerHTML = `
+                    <div class="photo-checkbox">
+                        <input type="checkbox" class="form-check-input" onchange="updateSelection()">
+                    </div>
+                    <img src="${URL.createObjectURL(file)}" alt="${file.name}" data-size="${file.size}">
+                    <div class="photo-actions">
+                        <button class="btn btn-sm btn-danger" onclick="deletePhoto(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                photoGrid.appendChild(photoItem);
+            });
+        }
+
+        // Update selection count
+        function updateSelection() {
+            const selectedPhotos = document.querySelectorAll('.photo-item input[type="checkbox"]:checked');
+            const batchActions = document.querySelector('.batch-actions');
+            batchActions.style.display = selectedPhotos.length > 0 ? 'block' : 'none';
+        }
+
+        // Delete selected photos
+        function deleteSelectedPhotos() {
+            const selectedPhotos = document.querySelectorAll('.photo-item input[type="checkbox"]:checked');
+            if (selectedPhotos.length > 0 && confirm(`Are you sure you want to delete ${selectedPhotos.length} photos?`)) {
+                selectedPhotos.forEach(checkbox => {
+                    checkbox.closest('.photo-item').remove();
+                });
+                updateSelection();
+            }
+        }
+
+        // Show create album modal
+        function showCreateAlbumModal() {
+            const modal = new bootstrap.Modal(document.getElementById('createAlbumModal'));
+            modal.show();
+        }
+
+        // Show move to album modal
+        function showMoveToAlbumModal() {
+            const select = document.getElementById('targetAlbum');
+            select.innerHTML = '';
+            albums.forEach(album => {
+                const option = document.createElement('option');
+                option.value = album.id;
+                option.textContent = album.name;
+                select.appendChild(option);
+            });
+            const modal = new bootstrap.Modal(document.getElementById('moveToAlbumModal'));
+            modal.show();
+        }
+
+        // Create new album
+        function createAlbum() {
+            const albumName = document.getElementById('albumName').value.trim();
+            if (albumName) {
+                const album = {
+                    id: Date.now().toString(),
+                    name: albumName,
+                    photos: [],
+                    cover: null
+                };
+                albums.push(album);
+                updateAlbumGrid();
+                bootstrap.Modal.getInstance(document.getElementById('createAlbumModal')).hide();
+                document.getElementById('albumName').value = '';
+            }
+        }
+
+        // Update album grid display
+        function updateAlbumGrid() {
+            const albumGrid = document.getElementById('albumGrid');
+            albumGrid.innerHTML = '';
+            
+            albums.forEach(album => {
+                const albumCard = document.createElement('div');
+                albumCard.className = 'album-card';
+                albumCard.innerHTML = `
+                    <div class="album-cover" onclick="openAlbum('${album.id}')">
+                        ${album.cover ? 
+                            `<img src="${album.cover}" alt="${album.name}">` :
+                            `<div class="no-cover"><i class="fas fa-image"></i></div>`
+                        }
+                    </div>
+                    <div class="album-info">
+                        <h4>${album.name}</h4>
+                        <div class="album-actions">
+                            <button class="btn btn-sm btn-primary" onclick="showSetCoverModal('${album.id}')">
+                                <i class="fas fa-image"></i> Set Cover
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteAlbum('${album.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                albumGrid.appendChild(albumCard);
+            });
+        }
+
+        // Open album
+        function openAlbum(albumId) {
+            currentAlbumId = albumId;
+            const album = albums.find(a => a.id === albumId);
+            if (album) {
+                const albumContent = document.getElementById('albumContent');
+                const currentAlbumName = document.getElementById('currentAlbumName');
+                const albumPhotos = document.getElementById('albumPhotos');
+                
+                currentAlbumName.textContent = album.name;
+                albumPhotos.innerHTML = '';
+                
+                album.photos.forEach(photo => {
+                    const photoItem = document.createElement('div');
+                    photoItem.className = 'photo-item';
+                    photoItem.innerHTML = `
+                        <div class="photo-checkbox">
+                            <input type="checkbox" class="form-check-input" onchange="updateSelection()">
+                        </div>
+                        <img src="${photo.url}" alt="${photo.name}">
+                        <div class="photo-actions">
+                            <button class="btn btn-sm btn-danger" onclick="removeFromAlbum(this, '${albumId}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    albumPhotos.appendChild(photoItem);
+                });
+                
+                albumContent.style.display = 'block';
+                // Scroll to album content
+                albumContent.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Show set cover modal
+        function showSetCoverModal(albumId) {
+            const album = albums.find(a => a.id === albumId);
+            if (album) {
+                const coverGrid = document.getElementById('coverSelectionGrid');
+                coverGrid.innerHTML = '';
+                
+                album.photos.forEach(photo => {
+                    const photoItem = document.createElement('div');
+                    photoItem.className = 'photo-item';
+                    photoItem.innerHTML = `
+                        <img src="${photo.url}" alt="Select as cover" 
+                             onclick="setAlbumCover('${albumId}', '${photo.url}')">
+                    `;
+                    coverGrid.appendChild(photoItem);
+                });
+                
+                const modal = new bootstrap.Modal(document.getElementById('setCoverModal'));
+                modal.show();
+            }
+        }
+
+        // Set album cover
+        function setAlbumCover(albumId, photoUrl) {
+            const album = albums.find(a => a.id === albumId);
+            if (album) {
+                album.cover = photoUrl;
+                updateAlbumGrid();
+                bootstrap.Modal.getInstance(document.getElementById('setCoverModal')).hide();
+            }
+        }
+
+        // Delete album
+        function deleteAlbum(albumId) {
+            if (confirm('Are you sure you want to delete this album?')) {
+                albums = albums.filter(a => a.id !== albumId);
+                updateAlbumGrid();
+            }
+        }
+
+        // Move to album
+        function moveToAlbum() {
+            const albumId = document.getElementById('targetAlbum').value;
+            const selectedPhotos = document.querySelectorAll('.photo-item input[type="checkbox"]:checked');
+            
+            if (selectedPhotos.length > 0 && albumId) {
+                const album = albums.find(a => a.id === albumId);
+                if (album) {
+                    selectedPhotos.forEach(checkbox => {
+                        const photoItem = checkbox.closest('.photo-item');
+                        const img = photoItem.querySelector('img');
+                        const photo = {
+                            url: img.src,
+                            name: img.alt
+                        };
+                        album.photos.push(photo);
+                        // Don't remove the photo from all photos view
+                        checkbox.checked = false; // Uncheck the checkbox
+                    });
+                    
+                    if (!album.cover && album.photos.length > 0) {
+                        album.cover = album.photos[0].url;
+                    }
+                    
+                    updateAlbumGrid();
+                    updateSelection();
+                }
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('moveToAlbumModal')).hide();
+        }
+
+        // Delete single photo
+        function deletePhoto(button) {
+            if (confirm('Are you sure you want to delete this photo?')) {
+                button.closest('.photo-item').remove();
+                updateSelection();
+            }
+        }
+
+        // Sort albums
+        function sortAlbums(criteria) {
+            // Implementation for sorting albums by name or date
+            console.log('Sorting albums by:', criteria);
+        }
+
+        // Handle file selection
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const files = e.target.files;
+                // Handle file selection based on the section
+                console.log('Files selected:', files);
+            });
+        });
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // 不再调用 initializePhotoGrid();
+            updateAlbumGrid();
+            updateFacesGrid();
+            updateCategoriesGrid();
+            updateAlbumSelect();
+        });
+
+        // Add function to remove photo from album
+        function removeFromAlbum(button, albumId) {
+            if (confirm('Are you sure you want to remove this photo from the album?')) {
+                const photoItem = button.closest('.photo-item');
+                const img = photoItem.querySelector('img');
+                const album = albums.find(a => a.id === albumId);
+                
+                if (album) {
+                    // Remove photo from album
+                    album.photos = album.photos.filter(p => p.url !== img.src);
+                    
+                    // Update album cover if needed
+                    if (album.cover === img.src && album.photos.length > 0) {
+                        album.cover = album.photos[0].url;
+                    } else if (album.photos.length === 0) {
+                        album.cover = null;
+                    }
+                    
+                    // Remove photo from display
+                    photoItem.remove();
+                    
+                    // Update album grid
+                    updateAlbumGrid();
+                }
+            }
+        }
+
+        // Show add face modal
+        function showAddFaceModal() {
+            const modal = new bootstrap.Modal(document.getElementById('addFaceModal'));
+            modal.show();
+        }
+
+        // Show add category modal
+        function showAddCategoryModal() {
+            const modal = new bootstrap.Modal(document.getElementById('addCategoryModal'));
+            modal.show();
+        }
+
+        // Handle face image preview
+        document.getElementById('faceImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('facePreview');
+                    preview.querySelector('img').src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Add new face
+        function addNewFace() {
+            const name = document.getElementById('faceName').value.trim();
+            const imageInput = document.getElementById('faceImage');
+            
+            if (name && imageInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const face = {
+                        id: Date.now().toString(),
+                        name: name,
+                        image: e.target.result,
+                        photos: []
+                    };
+                    faces.push(face);
+                    updateFacesGrid();
+                    bootstrap.Modal.getInstance(document.getElementById('addFaceModal')).hide();
+                    // Reset form
+                    document.getElementById('faceName').value = '';
+                    document.getElementById('faceImage').value = '';
+                    document.getElementById('facePreview').style.display = 'none';
+                }
+                reader.readAsDataURL(imageInput.files[0]);
+            }
+        }
+
+        // Add new category
+        function addNewCategory() {
+            const name = document.getElementById('categoryName').value.trim();
+            if (name) {
+                const category = {
+                    id: Date.now().toString(),
+                    name: name,
+                    photos: []
+                };
+                categories.push(category);
+                updateCategoriesGrid();
+                bootstrap.Modal.getInstance(document.getElementById('addCategoryModal')).hide();
+                document.getElementById('categoryName').value = '';
+            }
+        }
+
+        // Update faces grid
+        function updateFacesGrid() {
+            const grid = document.getElementById('facesGrid');
+            grid.innerHTML = '';
+            
+            faces.forEach(face => {
+                const faceCard = document.createElement('div');
+                faceCard.className = 'face-card';
+                faceCard.innerHTML = `
+                    <img src="${face.image}" alt="${face.name}" class="face-image">
+                    <div class="face-name">${face.name}</div>
+                    <div class="face-count">${face.photos.length} photos</div>
+                `;
+                grid.appendChild(faceCard);
+            });
+        }
+
+        // Update categories grid
+        function updateCategoriesGrid() {
+            const grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = '';
+            
+            categories.forEach(category => {
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'category-card';
+                categoryCard.innerHTML = `
+                    <h4>${category.name}</h4>
+                    <div class="category-count">${category.photos.length} photos</div>
+                `;
+                grid.appendChild(categoryCard);
+            });
+        }
+
+        // Handle image preview
+        document.getElementById('descriptionImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.querySelector('img').src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Generate image description
+        async function generateDescription() {
+            const imageInput = document.getElementById('descriptionImage');
+            const customPrompt = document.getElementById('customPrompt').value.trim();
+            const resultCard = document.querySelector('.result-card');
+            const resultContent = document.querySelector('.result-content');
+            
+            if (!imageInput.files[0]) {
+                alert('Please select an image first');
+                return;
+            }
+
+            // Show loading spinner
+            const loading = document.createElement('div');
+            loading.className = 'loading';
+            loading.innerHTML = '<div class="loading-spinner"></div>';
+            resultCard.style.display = 'block';
+            resultContent.innerHTML = '';
+            resultContent.appendChild(loading);
+            loading.style.display = 'block';
+
+            try {
+                const formData = new FormData();
+                formData.append('image', imageInput.files[0]);
+                formData.append('prompt', customPrompt);
+
+                console.log('Sending request to server...');
+                console.log('Image file:', imageInput.files[0]);
+                console.log('Prompt:', customPrompt);
+
+                const response = await fetch('http://localhost:5000/api/describe-image', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    mode: 'cors'
+                });
+
+                console.log('Response status:', response.status);
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+
+                if (!response.ok) {
+                    throw new Error(`Server responded with status ${response.status}: ${responseText}`);
+                }
+
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error('Invalid JSON response from server');
+                }
+                
+                // Remove loading spinner
+                loading.remove();
+                
+                // Display result
+                if (data.error) {
+                    resultContent.innerHTML = `<p class="text-danger">${data.error}</p>`;
+                } else if (data.description) {
+                    resultContent.innerHTML = `<p>${data.description}</p>`;
+                } else {
+                    throw new Error('No description in response');
+                }
+            } catch (error) {
+                console.error('Error details:', error);
+                console.error('Error stack:', error.stack);
+                loading.remove();
+                resultContent.innerHTML = `
+                    <p class="text-danger">
+                        Error generating description: ${error.message}<br>
+                        Please check the console for more details.
+                    </p>`;
+            }
+        }
+
+        // Update the album selection handling
+        function updateAlbumSelect() {
+            const albumSelect = document.getElementById('albumSelect');
+            const isAlbumSelected = document.getElementById('albumPhotos').checked;
+            
+            albumSelect.style.display = isAlbumSelected ? 'block' : 'none';
+            
+            if (isAlbumSelected) {
+                // Populate album select
+                albumSelect.innerHTML = '<option value="">Select an album...</option>';
+                albums.forEach(album => {
+                    const option = document.createElement('option');
+                    option.value = album.id;
+                    option.textContent = album.name;
+                    albumSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Add event listeners for photo source selection
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize other components
+            updateAlbumGrid();
+            updateFacesGrid();
+            updateCategoriesGrid();
+            
+            // Initialize album selection
+            updateAlbumSelect();
+            
+            // Add event listeners for photo source selection
+            document.querySelectorAll('input[name="photoSource"]').forEach(radio => {
+                radio.addEventListener('change', updateAlbumSelect);
+            });
+            
+            // Add event listener for album selection change
+            document.getElementById('albumSelect').addEventListener('change', function() {
+                const selectedAlbumId = this.value;
+                if (selectedAlbumId) {
+                    const album = albums.find(a => a.id === selectedAlbumId);
+                    if (album) {
+                        // Update the UI to show selected album
+                        console.log('Selected album:', album.name);
+                    }
+                }
+            });
+        });
+
+        // Update the findDuplicates function to properly handle the server response and error cases
+        async function findDuplicates() {
+            const duplicateGroups = document.getElementById('duplicateGroups');
+            duplicateGroups.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+            
+            try {
+                const photoItems = document.querySelectorAll('#allPhotos .photo-item img');
+                if (photoItems.length === 0) {
+                    duplicateGroups.innerHTML = '<div class="alert alert-info">No photos found in the gallery.</div>';
+                    return;
+                }
+                const photos = [];
+                for (const img of photoItems) {
+                    try {
+                        const response = await fetch(img.src);
+                        const blob = await response.blob();
+                        const base64 = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.readAsDataURL(blob);
+                        });
+                        photos.push({
+                            src: base64,
+                            name: img.alt || 'Photo',
+                            size: blob.size
+                        });
+                    } catch (error) {
+                        console.error('Error processing photo:', error);
+                        continue;
+                    }
+                }
+                if (photos.length === 0) {
+                    duplicateGroups.innerHTML = '<div class="alert alert-info">No valid photos to process.</div>';
+                    return;
+                }
+                // 只更新 Before Optimization
+                updateSpaceStatistics(photos, null, true);
+                const response = await fetch('http://localhost:5000/api/find-duplicates', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photos: photos })
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        duplicateGroups.innerHTML = '<div class="alert alert-info">No similar photos found.</div>';
+                    } else {
+                        throw new Error(result.error || 'Failed to find duplicates');
+                    }
+                    return;
+                }
+                if (!result.groups || result.groups.length === 0) {
+                    duplicateGroups.innerHTML = '<div class="alert alert-info">No similar photos found.</div>';
+                    return;
+                }
+                displayDuplicateGroups(result);
+                // 不更新 After Optimization
+                document.getElementById('applyOptimizationBtn').disabled = false;
+            } catch (error) {
+                console.error('Error finding duplicates:', error);
+                duplicateGroups.innerHTML = `<div class="alert alert-danger">Error finding duplicates: ${error.message}</div>`;
+            }
+        }
+
+        function displayDuplicateGroups(duplicates) {
+            const duplicateGroups = document.getElementById('duplicateGroups');
+            duplicateGroups.innerHTML = '';
+
+            if (!duplicates.groups || duplicates.groups.length === 0) {
+                duplicateGroups.innerHTML = '<div class="alert alert-info">No similar photos found.</div>';
+                return;
+            }
+
+            // 1. 展示重复分组
+            let groupedSrcSet = new Set();
+            duplicates.groups.forEach((group, groupIndex) => {
+                group.photos.forEach(photo => groupedSrcSet.add(photo.src));
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'card mb-4';
+                groupDiv.innerHTML = `
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Similar Photo Group ${groupIndex + 1}</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="selectAllInGroup(${groupIndex})">
+                                Select All
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="deselectAllInGroup(${groupIndex})">
+                                Deselect All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            ${group.photos.map((photo, photoIndex) => `
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="position-relative">
+                                            <img src="${photo.src}" class="card-img-top" alt="${photo.name}" data-size="${photo.size}" style="height: 200px; object-fit: cover;">
+                                            <div class="position-absolute top-0 end-0 m-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="photo_${groupIndex}_${photoIndex}" 
+                                                           value="${photo.src}"
+                                                           onchange="updateGroupSelection(${groupIndex})">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text small text-muted mb-1">
+                                                Size: ${formatSize(photo.size)}
+                                            </p>
+                                            <p class="card-text small text-truncate" title="${photo.name}">
+                                                ${photo.name}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                duplicateGroups.appendChild(groupDiv);
+            });
+
+            // 展示Other Photos分组
+            if (duplicates.others && duplicates.others.length > 0) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'card mb-4';
+                groupDiv.innerHTML = `
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Other Photos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            ${duplicates.others.map((photo, photoIndex) => `
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="position-relative">
+                                            <img src="${photo.src}" class="card-img-top" alt="${photo.name}" data-size="${photo.size}" style="height: 200px; object-fit: cover;">
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text small text-muted mb-1">
+                                                Size: ${formatSize(photo.size)}
+                                            </p>
+                                            <p class="card-text small text-truncate" title="${photo.name}">
+                                                ${photo.name}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                duplicateGroups.appendChild(groupDiv);
+            }
+        }
+
+        function selectAllInGroup(groupIndex) {
+            const checkboxes = document.querySelectorAll(`input[id^="photo_${groupIndex}_"]`);
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateGroupSelection(groupIndex);
+        }
+
+        function deselectAllInGroup(groupIndex) {
+            const checkboxes = document.querySelectorAll(`input[id^="photo_${groupIndex}_"]`);
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateGroupSelection(groupIndex);
+        }
+
+        function updateGroupSelection(groupIndex) {
+            const checkboxes = document.querySelectorAll(`input[id^="photo_${groupIndex}_"]`);
+            const checkedCount = document.querySelectorAll(`input[id^="photo_${groupIndex}_"]:checked`).length;
+            
+            // Update space statistics
+            updateSpaceStatistics();
+        }
+
+        function updateSpaceStatistics(photos, duplicates = null, onlyBefore = false, onlyAfter = false) {
+            // Calculate total space before optimization
+            if (!onlyAfter) {
+                const beforePhotoCount = photos.length;
+                const beforeSpace = photos.reduce((total, photo) => total + (photo.size || 0), 0);
+                document.getElementById('beforePhotoCount').textContent = beforePhotoCount;
+                document.getElementById('beforeSpace').textContent = formatSize(beforeSpace);
+            }
+            // Calculate space after optimization
+            if (!onlyBefore) {
+                // 统计重复组中已勾选的照片
+                const keptImgs = [];
+                document.querySelectorAll('#duplicateGroups input[type="checkbox"]:checked').forEach(checkbox => {
+                    const img = checkbox.closest('.card').querySelector('img');
+                    if (img) keptImgs.push(img);
+                });
+                // 统计Other Photos分组的所有照片
+                const otherImgs = [];
+                document.querySelectorAll('#duplicateGroups .card').forEach(card => {
+                    const header = card.querySelector('.card-header h5');
+                    if (header && header.textContent.trim() === 'Other Photos') {
+                        card.querySelectorAll('img').forEach(img => otherImgs.push(img));
+                    }
+                });
+                // 合并
+                const allImgs = keptImgs.concat(otherImgs);
+                const afterPhotos = [];
+                for (const img of allImgs) {
+                    let size = 0;
+                    try {
+                        size = parseInt(img.getAttribute('data-size')) || 0;
+                    } catch (e) {}
+                    afterPhotos.push({
+                        src: img.src,
+                        name: img.alt || 'Photo',
+                        size: size
+                    });
+                }
+                let afterPhotoCount = afterPhotos.length;
+                let afterSpace = 0;
+                for (const photo of afterPhotos) {
+                    afterSpace += photo.size;
+                }
+                document.getElementById('afterPhotoCount').textContent = afterPhotoCount;
+                document.getElementById('afterSpace').textContent = formatSize(afterSpace);
+            }
+        }
+
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function applyOptimization() {
+            try {
+                const photosToDelete = [];
+                const photosToKeep = [];
+                // 收集未勾选的照片（即要删除的），和勾选的（要保留的）
+                document.querySelectorAll('#duplicateGroups input[type="checkbox"]').forEach(checkbox => {
+                    if (!checkbox.checked) {
+                        photosToDelete.push(checkbox.value);
+                    } else {
+                        photosToKeep.push(checkbox.value);
+                    }
+                });
+                // 删除UI和 allPhotoFiles 中的照片
+                const allPhotoImgs = document.querySelectorAll('#allPhotos .photo-item img');
+                photosToDelete.forEach(src => {
+                    allPhotoImgs.forEach(img => {
+                        if (img.src === src) {
+                            // 删除 home 页面照片
+                            const photoItem = img.closest('.photo-item');
+                            if (photoItem) photoItem.remove();
+                        }
+                    });
+                });
+                // 更新 allPhotoFiles
+                allPhotoFiles = allPhotoFiles.filter(file => {
+                    const tempUrl = URL.createObjectURL(file);
+                    const shouldKeep = !photosToDelete.includes(tempUrl);
+                    if (!shouldKeep) URL.revokeObjectURL(tempUrl);
+                    return shouldKeep;
+                });
+                // 只保留已勾选的照片在重复组中显示
+                // 遍历所有重复组，移除未勾选的照片
+                document.querySelectorAll('#duplicateGroups .card').forEach(groupCard => {
+                    const header = groupCard.querySelector('.card-header h5');
+                    if (header && header.textContent.trim() !== 'Other Photos') {
+                        groupCard.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                            if (!checkbox.checked) {
+                                // 移除未勾选的照片卡片
+                                const photoCol = checkbox.closest('.col-md-4');
+                                if (photoCol) photoCol.remove();
+                            }
+                        });
+                    }
+                });
+                // 重新统计并更新 After Optimization（重复组保留+Other Photos全部）
+                updateSpaceStatistics([], null, false, true);
+                // 不禁用Apply按钮，允许多次应用
+                alert('Optimization applied successfully!');
+            } catch (error) {
+                console.error('Error applying optimization:', error);
+                alert('Error applying optimization: ' + error.message);
+            }
+        }
+
+        function navigateToFeature(featureId) {
+            // 隐藏所有内容区域
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // 显示feature pages部分
+            document.getElementById('feature-pages').style.display = 'block';
+            
+            // 隐藏所有feature pages
+            document.querySelectorAll('.feature-page').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            // 显示选中的feature page
+            document.getElementById(`${featureId}-page`).style.display = 'block';
+        }
+
+        function backToFancy() {
+            // 隐藏所有内容区域
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            // 显示fancy部分
+            document.getElementById('fancy').style.display = 'block';
+            // 更新导航栏状态
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.section === 'fancy') {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Add these new functions for style transfer
+        function previewStyleImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('stylePreview');
+                    preview.querySelector('img').src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewContentImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('contentPreview');
+                    preview.querySelector('img').src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function runStyleTransfer() {
+            const styleFile = document.getElementById('styleImage').files[0];
+            const contentFile = document.getElementById('contentImage').files[0];
+            
+            if (!styleFile || !contentFile) {
+                alert('Please select both style and content images');
+                return;
+            }
+
+            // Show loading state
+            const resultPreview = document.getElementById('resultPreview');
+            resultPreview.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+            resultPreview.style.display = 'block';
+
+            try {
+                // Create FormData to send files
+                const formData = new FormData();
+                formData.append('style', styleFile);
+                formData.append('content', contentFile);
+                formData.append('preprocessor', 'Contour');
+                
+                // Add the content file's original path
+                formData.append('contentPath', contentFile.name);
+
+                // Send request to backend with full URL
+                const response = await fetch('http://localhost:5000/api/style-transfer', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    mode: 'cors'
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Style transfer failed');
+                }
+
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Style transfer failed');
+                }
+                
+                // Display result with full URL
+                resultPreview.innerHTML = `<img src="http://localhost:5000${result.outputUrl}" alt="Style Transfer Result" class="img-preview">`;
+            } catch (error) {
+                console.error('Error:', error);
+                resultPreview.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
